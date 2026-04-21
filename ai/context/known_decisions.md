@@ -7,7 +7,7 @@
 
 ## Backend
 - Django + DRF.
-- PostgreSQL.
+- MySQL.
 
 ## Reglas
 - No microservicios.
