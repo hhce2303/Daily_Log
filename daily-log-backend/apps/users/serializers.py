@@ -58,3 +58,7 @@ class LoginResponseSerializer(serializers.Serializer):
     user = UserProfileSerializer()
     session_id = serializers.IntegerField()
     station_id = serializers.IntegerField()
+
+
+class UsernameItemSerializer(serializers.Serializer):
+    username = serializers.CharField()

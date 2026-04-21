@@ -15,6 +15,7 @@ from apps.users.serializers import (
     StationOptionSerializer,
     StatusSerializer,
     UserProfileSerializer,
+    UsernameItemSerializer,
 )
 
 
@@ -105,3 +106,16 @@ class StatusView(APIView):
         )
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class UsernamesView(APIView):
+    permission_classes = [AllowAny]
+
+    @extend_schema(responses={200: UsernameItemSerializer(many=True)})
+    def get(self, request: Request) -> Response:
+        """Return all usernames for autocomplete on the login form."""
+        from apps.core.models import UserName
+
+        usernames = UserName.objects.values_list("user_name", flat=True).order_by("user_name")
+        data = [{"username": name} for name in usernames]
+        return Response(data, status=status.HTTP_200_OK)
