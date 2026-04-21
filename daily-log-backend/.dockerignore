@@ -24,6 +24,7 @@ Thumbs.db
 .gitignore
 
 docker/
+!docker/entrypoint.sh
 *.md
 .agents/
 .claude/

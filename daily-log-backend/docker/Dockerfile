@@ -39,15 +39,12 @@ COPY manage.py .
 COPY config/ config/
 COPY apps/ apps/
 COPY templates/ templates/
-
-# Collect static files (needs SECRET_KEY at build time)
-RUN DJANGO_ENV=production \
-    SECRET_KEY=build-only-placeholder \
-    DB_USER=x DB_PASSWORD=x DB_HOST=x \
-    python manage.py collectstatic --noinput 2>/dev/null || true
+COPY docker/entrypoint.sh /entrypoint.sh
 
 # Own everything to django user
-RUN chown -R django:django /app
+RUN mkdir -p /app/staticfiles && \
+    chmod +x /entrypoint.sh && \
+    chown -R django:django /app /entrypoint.sh
 
 USER django
 
@@ -56,6 +53,7 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:8000/api/v1/health/ || exit 1
 
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["gunicorn", "config.wsgi:application", \
      "--bind", "0.0.0.0:8000", \
      "--workers", "3", \
