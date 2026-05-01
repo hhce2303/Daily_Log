@@ -333,14 +333,17 @@ Estas funciones del proyecto_app contienen lógica de negocio pura (sin Tkinter)
 
 ### 6.3 Specials (`/api/v1/specials/`)
 
-| Método | Endpoint | Descripción | Roles |
-|--------|----------|-------------|-------|
-| GET | `/` | Listar specials (filtros: supervisor, status, date) | Supervisor+ |
-| POST | `/` | Crear special desde evento | Operador |
-| PATCH | `/{id}/status/` | Marcar como done/pending | Supervisor |
-| POST | `/{id}/assign/` | Asignar supervisor | Lead Supervisor |
-| POST | `/transfer/` | Transferir specials entre supervisores | Lead Supervisor |
-| GET | `/unassigned/` | Specials sin supervisor asignado | Lead Supervisor |
+| Método | Endpoint | Descripción | Estado | Roles |
+|--------|----------|-------------|--------|-------|
+| GET | `/supervisor/` | Specials pendientes del supervisor autenticado (excluye 'done') | ✅ Implementado | Supervisor+ |
+| PATCH | `/{id}/mark/` | Marcar (`done`/`flagged`) o desmarcar (`null`) un special | ✅ Implementado | Supervisor+ |
+| POST | `/` | Crear special desde evento | Planificado | Operador |
+| POST | `/{id}/assign/` | Asignar supervisor | Planificado | Lead Supervisor |
+| POST | `/transfer/` | Transferir specials entre supervisores | Planificado | Lead Supervisor |
+| GET | `/unassigned/` | Specials sin supervisor asignado | Planificado | Lead Supervisor |
+
+> **Nota de implementación (v1):** El endpoint `GET /supervisor/` ejecuta una sola query con JOINs a `daily_sites`, `daily_activities` y `daily_users_names` vía `select_related`. No hay N+1. El frontend **no debe** hacer polling más frecuente que cada 30 s.
+> Manual de conexión frontend → `docs/specials-supervisor-api.md`
 
 ### 6.4 Covers y Breaks (`/api/v1/covers/`, `/api/v1/breaks/`)
 

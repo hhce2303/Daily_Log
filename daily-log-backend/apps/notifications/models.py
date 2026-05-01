@@ -12,6 +12,24 @@ class Special(models.Model):
         blank=True,
         related_name="specials",
     )
+    site = models.ForeignKey(
+        "core.Site",
+        db_column="ID_site",
+        db_constraint=False,
+        on_delete=models.DO_NOTHING,
+        null=True,
+        blank=True,
+        related_name="specials",
+    )
+    activity = models.ForeignKey(
+        "core.Activity",
+        db_column="ID_activity",
+        db_constraint=False,
+        on_delete=models.DO_NOTHING,
+        null=True,
+        blank=True,
+        related_name="specials",
+    )
     user = models.ForeignKey(
         "core.User",
         db_column="ID_user",
@@ -29,6 +47,8 @@ class Special(models.Model):
         related_name="specials_assigned",
     )
     spec_datetime = models.DateTimeField(db_column="spec_datetime")
+    spec_quantity = models.CharField(max_length=45, null=True, blank=True, db_column="spec_quantity")
+    spec_camera = models.CharField(max_length=45, null=True, blank=True, db_column="spec_camera")
     spec_status = models.CharField(
         max_length=20, null=True, blank=True, db_column="spec_status"
     )

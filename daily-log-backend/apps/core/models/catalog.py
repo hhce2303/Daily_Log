@@ -38,3 +38,70 @@ class SpecialGroup(models.Model):
 
     def __str__(self) -> str:
         return self.group_code
+
+
+class SeasonConfig(models.Model):
+    """
+    Stores the currently active season (winter / summer).
+    Only one row should have active=1 at a time.
+
+    Table: daily_season_offsets
+    Columns: season_offsets (str), active (tinyint)
+    """
+
+    id = models.AutoField(primary_key=True)
+    season_offsets = models.CharField(max_length=20, db_column="season_offsets")
+    active = models.SmallIntegerField(db_column="active")
+
+    class Meta:
+        managed = False
+        db_table = "daily_season_offsets"
+
+    def __str__(self) -> str:
+        return f"{self.season_offsets} (active={self.active})"
+
+
+class WinterOffset(models.Model):
+    """
+    Hour offset (relative to Colombia time) per US timezone during Winter.
+
+    Table: daily_winter_offsets
+    Columns: time_zone (str PK), time_offset (decimal)
+    """
+
+    time_zone = models.CharField(
+        max_length=50, primary_key=True, db_column="time_zone"
+    )
+    time_offset = models.DecimalField(
+        max_digits=5, decimal_places=2, db_column="time_offset"
+    )
+
+    class Meta:
+        managed = False
+        db_table = "daily_winter_offsets"
+
+    def __str__(self) -> str:
+        return f"{self.time_zone} ({self.time_offset:+.2f}h) [winter]"
+
+
+class SummerOffset(models.Model):
+    """
+    Hour offset (relative to Colombia time) per US timezone during Summer (DST).
+
+    Table: daily_summer_offsets
+    Columns: time_zone (str PK), time_offset (decimal)
+    """
+
+    time_zone = models.CharField(
+        max_length=50, primary_key=True, db_column="time_zone"
+    )
+    time_offset = models.DecimalField(
+        max_digits=5, decimal_places=2, db_column="time_offset"
+    )
+
+    class Meta:
+        managed = False
+        db_table = "daily_summer_offsets"
+
+    def __str__(self) -> str:
+        return f"{self.time_zone} ({self.time_offset:+.2f}h) [summer]"
