@@ -1,0 +1,7 @@
+{
+  "name": "daily-log-scripts",
+  "type": "module",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.108.0"
+  }
+}
