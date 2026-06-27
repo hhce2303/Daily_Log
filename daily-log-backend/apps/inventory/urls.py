@@ -3,6 +3,7 @@ from django.urls import path
 from apps.inventory.views import (
     ActivityLogListCreateView,
     ArticleDetailView,
+    ArticleInstallFinishView,
     ArticleListCreateView,
     DashboardStatsView,
     GroupListView,
@@ -14,4 +15,9 @@ urlpatterns = [
     path("groups/", GroupListView.as_view(), name="inventory-groups"),
     path("activity-logs/", ActivityLogListCreateView.as_view(), name="inventory-activity-logs"),
     path("dashboard/stats/", DashboardStatsView.as_view(), name="inventory-dashboard-stats"),
+    path(
+        "sites/<int:site_id>/catalog/<int:device_id>/install/",
+        ArticleInstallFinishView.as_view(),
+        name="inventory-install-finish",
+    ),
 ]

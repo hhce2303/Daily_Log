@@ -7,8 +7,10 @@ from typing import Any
 
 import httpx
 from django.conf import settings
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
+from apps.core.models import Site
 from apps.inventory.models import ActivityLog, Article, ArticleStatus, Group
 
 logger = logging.getLogger(__name__)
@@ -42,6 +44,31 @@ def delete_article(article_id: int) -> None:
 
 def log_activity(*, data: dict[str, Any]) -> ActivityLog:
     return ActivityLog.objects.create(**data)
+
+
+def finish_installation(
+    *,
+    site_id: int,
+    article_id: int,
+    data: dict[str, Any],
+) -> Article:
+    # Validate site existence for route-level data integrity.
+    get_object_or_404(Site, pk=site_id)
+
+    article = Article.objects.get(pk=article_id)
+    old_status = article.status
+
+    article.install_start_time = data["start_time"]
+    article.install_end_time = data["end_time"]
+    article.install_duration_seconds = data["duration_seconds"]
+    article.installation_log = data.get("installation_log", [])
+    article.status = data.get("status", ArticleStatus.ACTIVO)
+    article.save()
+
+    if article.status == ArticleStatus.DANADO and old_status != ArticleStatus.DANADO:
+        _send_damaged_alert(article)
+
+    return Article.objects.select_related("group").get(pk=article.pk)
 
 
 # ---------------------------------------------------------------------------

@@ -16,6 +16,7 @@ from apps.inventory.serializers import (
     ArticleUpdateSerializer,
     ArticleWriteSerializer,
     DashboardStatsSerializer,
+    FinishInstallationSerializer,
     GroupSerializer,
 )
 
@@ -93,3 +94,17 @@ class DashboardStatsView(APIView):
     def get(self, request: Request) -> Response:
         stats = selectors.get_dashboard_stats()
         return Response(DashboardStatsSerializer(stats).data)
+
+
+class ArticleInstallFinishView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request: Request, site_id: int, device_id: int) -> Response:
+        ser = FinishInstallationSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+        article = services.finish_installation(
+            site_id=site_id,
+            article_id=device_id,
+            data=ser.validated_data,
+        )
+        return Response(ArticleReadSerializer(article).data, status=status.HTTP_200_OK)

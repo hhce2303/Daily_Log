@@ -5,6 +5,7 @@ from django.db import models
 
 class ArticleStatus(models.TextChoices):
     ACTIVO = "activo", "Activo"
+    INSTALADO = "instalado", "Instalado"
     REPARADO = "reparado", "Reparado"
     REPARACION = "reparacion", "En reparación"
     DANADO = "danado", "Dañado"
@@ -52,6 +53,27 @@ class Article(models.Model):
     acquisition_date = models.DateField(null=True, blank=True)
     image = models.CharField(max_length=500, blank=True, default="")
     serial = models.CharField(max_length=200, blank=True, default="")
+    install_start_time = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Cuando el técnico presionó 'Start Installation'",
+    )
+    install_end_time = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Cuando finalizó la instalación",
+    )
+    install_duration_seconds = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Duración neta de la instalación",
+    )
+    installation_log = models.JSONField(
+        null=True,
+        blank=True,
+        default=list,
+        help_text="Array de JSON con la bitácora: [{id, time, text, photoUrl}]",
+    )
     modified_by = models.CharField(max_length=100, blank=True, default="")
     latest_note = models.TextField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)

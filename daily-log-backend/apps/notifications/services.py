@@ -27,7 +27,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.notifications.models import Special
-from apps.notifications.selectors import get_timezone_offset_for_site
+from apps.notifications.selectors import get_on_duty_supervisor_id, get_timezone_offset_for_site
 
 if TYPE_CHECKING:
     from apps.logs.models import DailyEvent
@@ -48,14 +48,28 @@ def create_special_from_event(event: "DailyEvent") -> Special:
     separate step (auto-assign via ranges or manual assignment).
     """
     offset = get_timezone_offset_for_site(event.site.site_timezone)
-    spec_datetime = event.event_datetime + timedelta(hours=offset)
+    # offset is relative to Colombia (UTC-5).
+    # To convert UTC → site local: UTC + (offset − 5).
+    # e.g. ET summer: offset=+1 → UTC − 4 = ET local (UTC-4)
+    # The result stays UTC-aware; the NUMERIC value equals site local time.
+    # The serializer returns it without a Z suffix so the frontend displays
+    # the value as-is (no second UTC→local browser conversion).
+    COLOMBIA_UTC_OFFSET = -5
+    spec_datetime = event.event_datetime + timedelta(hours=offset + COLOMBIA_UTC_OFFSET)
+
+    supervisor_id = get_on_duty_supervisor_id()
+    if supervisor_id is None:
+        raise ValueError(
+            "No supervisor found to assign the special. "
+            "Ensure at least one Supervisor user exists."
+        )
 
     return Special.objects.create(
         event_id=event.pk,
         site_id=event.site_id,
         activity_id=event.activity_id,
         user_id=event.user_id,
-        supervisor=None,
+        supervisor_id=supervisor_id,
         spec_datetime=spec_datetime,
         spec_quantity=event.quantity,
         spec_camera=event.camera,

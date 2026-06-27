@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from django.db.models import Min
+
 from apps.core.models import Activity
 from apps.sigtools.models import Site as SigtoolsSite
 
@@ -33,10 +35,11 @@ def get_all_sites() -> list[dict[str, Any]]:
 
 
 def get_all_activities() -> list[dict[str, Any]]:
-    """Return all activities ordered by name."""
+    """Return unique activities ordered by name (one canonical ID per name)."""
     return list(
         Activity.objects
-        .only("id", "act_name")
+        .values("act_name")
+        .annotate(id=Min("id"))
         .order_by("act_name")
         .values("id", "act_name")
     )

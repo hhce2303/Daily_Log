@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from django.db.models import Q, QuerySet
 
-from apps.core.models import SeasonConfig, SummerOffset, WinterOffset
+from apps.core.models import SeasonConfig, SummerOffset, User as DailyUser, WinterOffset
 from apps.notifications.models import Special
 
 
@@ -89,3 +89,39 @@ def get_timezone_offset_for_site(site_timezone: str | None) -> float:
     )
 
     return float(result) if result is not None else 0.0
+
+
+def get_on_duty_supervisor_id() -> int | None:
+    """
+    Return the PK of a supervisor currently logged in (active session).
+
+    Lookup order:
+      1. Any user with role Supervisor/Lead Supervisor/Admin that has an
+         active session (sesion_active=1).
+      2. Fallback: first supervisor user in daily_users (no session required).
+      3. Returns None if no supervisor exists — caller must handle this.
+
+    This mirrors the legacy desktop behavior where a special is always
+    assigned to the on-duty supervisor at creation time.
+    """
+    from apps.users.models import Session  # local import avoids circular deps
+
+    active_supervisor_id = (
+        Session.objects
+        .filter(
+            sesion_active=1,
+            user__role__name__in=["Supervisor", "Lead Supervisor", "Admin"],
+        )
+        .values_list("user_id", flat=True)
+        .first()
+    )
+    if active_supervisor_id is not None:
+        return active_supervisor_id
+
+    # Fallback: pick any supervisor even if not currently logged in
+    return (
+        DailyUser.objects
+        .filter(role__name__in=["Supervisor", "Lead Supervisor"])
+        .values_list("id", flat=True)
+        .first()
+    )
