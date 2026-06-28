@@ -1,0 +1,4 @@
+# Sensitive data
+users_data.json
+users_to_migrate.json
+daily-log-backend/sig_dailylogs_clone_*.sql
